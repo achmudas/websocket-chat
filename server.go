@@ -14,20 +14,11 @@ func handleError(w http.ResponseWriter, r *http.Request, status int, reason erro
 
 func checkOrigin(r *http.Request) bool {
 	//#FIXME ignored for now
-	return false
+	return true
 }
 
 func initConnection() *websocket.Upgrader {
-	upgrader := websocket.Upgrader{
-		10,
-		1024,
-		1024,
-		nil,
-		nil,
-		handleError,
-		checkOrigin,
-		false,
-	}
+	upgrader := websocket.Upgrader{}
 	return &upgrader
 }
 
@@ -35,15 +26,21 @@ func receive(w http.ResponseWriter, r *http.Request) {
 	up := initConnection()
 	con, err := up.Upgrade(w, r, nil) //#FIXME Upgrade is deprecated
 	if err != nil {
-		log.Printf("Error when innitiating connection: %v", err)
+		log.Fatal("Error when innitiating connection: ", err)
 	}
-	// defer con.Close()
+	defer con.Close()
 	for {
-		_, msg, err := con.ReadMessage()
+		mt, msg, err := con.ReadMessage()
 		if err != nil {
-			log.Printf("Error when reading message: %v", err)
+			log.Printf("Error when reading message: ", err)
 		}
+
 		fmt.Printf("Received: %s", msg)
+
+		err = con.WriteMessage(mt, msg)
+		if err != nil {
+			log.Printf("Error when sending echo message: ", err)
+		}
 	}
 }
 
