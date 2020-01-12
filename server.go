@@ -5,17 +5,16 @@ import (
 	"log"
 	"net/http"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/gorilla/websocket"
 )
 
-func handleError(w http.ResponseWriter, r *http.Request, status int, reason error) {
-	// #FIXME finish this one
+type Client struct {
+	id         string
+	connection *websocket.Conn
 }
 
-func checkOrigin(r *http.Request) bool {
-	//#FIXME ignored for now
-	return true
-}
+var clients = []Client{}
 
 func initConnection() *websocket.Upgrader {
 	upgrader := websocket.Upgrader{}
@@ -29,33 +28,61 @@ func receive(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Error when innitiating connection: ", err)
 	}
 	defer con.Close()
+
+	clientName := petname.Name()
+
+	fmt.Printf("Connected %s\n", clientName)
+
+	clients = append(clients, Client{clientName, con})
+
 	for {
 		mt, msg, err := con.ReadMessage()
 		if err != nil {
 			log.Printf("Error when reading message: ", err)
 		}
 
-		fmt.Printf("Received: %s", msg)
+		// sendingClient := getSendingClient(con)
 
-		err = con.WriteMessage(mt, msg)
-		if err != nil {
-			log.Printf("Error when sending echo message: ", err)
+		var client Client
+		for _, cli := range clients {
+			if cli.connection == con {
+				client = cli
+			}
+		}
+
+		fmt.Printf("Received from %s: %s\n", client.id, msg)
+
+		// #FIXME use go routines?
+		for _, cli := range clients {
+
+			msgToSent := []byte{}
+
+			if cli.connection == con {
+				msgToSent = append([]byte(client.id+": "), msg...)
+			} else {
+				msgToSent = append([]byte("\n"+client.id+": "), msg...)
+			}
+			err = cli.connection.WriteMessage(mt, msgToSent)
+			if err != nil {
+				log.Printf("Error when sending echo message: ", err)
+			}
 		}
 	}
 }
+
+// func getSendingClient(con *websocket.Conn) Client {
+// 	var client Client
+// 	for _, cli := range clients {
+// 		if cli.connection == con {
+// 			client = cli
+// 		}
+// 	}
+// 	return client
+// }
 
 func main() {
 	address := "localhost:8080"
 	http.HandleFunc("/", receive)
 	log.Printf("Server listening on: %v", address)
 	log.Fatal(http.ListenAndServe(address, nil)) //#FIXME use flag to let user define address
-	// reader := bufio.NewReader(os.Stdin)
-	// for {
-	// 	fmt.Print("Message: ")
-	// 	input, err := reader.ReadString('\n')
-	// 	if err != nil {
-	// 		log.Panicf("Error when reading input: %v", err)
-	// 	}
-	// 	fmt.Printf("User ententered: %v", input)
-	// }
 }

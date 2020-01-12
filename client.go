@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -21,16 +23,25 @@ func main() {
 
 	defer c.Close()
 
-	for {
+	reader := bufio.NewReader(os.Stdin)
 
-		c.WriteMessage(websocket.TextMessage, []byte("Hello world!"))
-
-		_, msg, err := c.ReadMessage()
-		if err != nil {
-			log.Printf("Error when reading message: ", err)
+	go func() {
+		for {
+			_, msg, err := c.ReadMessage()
+			if err != nil {
+				log.Printf("Error when reading message: ", err)
+			}
+			fmt.Printf("%s> ", msg)
 		}
-		fmt.Printf("Received response from server: %s", msg)
+	}()
 
+	fmt.Printf("> ")
+
+	for {
+		bytes, err := reader.ReadBytes('\n')
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error when reading std input: ", err)
+		}
+		c.WriteMessage(websocket.TextMessage, bytes)
 	}
-
 }
