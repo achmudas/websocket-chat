@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/gorilla/websocket"
+	"github.com/marstr/randname"
 )
 
 type Client struct {
@@ -27,21 +27,16 @@ func receive(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal("Error when innitiating connection: ", err)
 	}
+
 	defer con.Close()
 
-	clientName := petname.Name()
+	clientName := randname.Generate()
 
 	fmt.Printf("Connected %s\n", clientName)
 
 	clients = append(clients, Client{clientName, con})
 
 	for {
-		mt, msg, err := con.ReadMessage()
-		if err != nil {
-			log.Printf("Error when reading message: ", err)
-		}
-
-		// sendingClient := getSendingClient(con)
 
 		var client Client
 		for _, cli := range clients {
@@ -49,6 +44,22 @@ func receive(w http.ResponseWriter, r *http.Request) {
 				client = cli
 			}
 		}
+
+		mt, msg, err := con.ReadMessage()
+		if err != nil {
+			if c, k := err.(*websocket.CloseError); k {
+				if c.Code == 1000 {
+					fmt.Printf("%s disconnected\n", client.id)
+					break
+				}
+			} else {
+				log.Printf("Error when reading message: ", err)
+			}
+		}
+
+		fmt.Println("MT: %d", mt)
+
+		// sendingClient := getSendingClient(con)
 
 		fmt.Printf("Received from %s: %s\n", client.id, msg)
 
@@ -64,7 +75,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 			}
 			err = cli.connection.WriteMessage(mt, msgToSent)
 			if err != nil {
-				log.Printf("Error when sending echo message: ", err)
+				log.Printf("Error when sending message: ", err)
 			}
 		}
 	}

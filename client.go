@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -31,6 +32,7 @@ func main() {
 			if err != nil {
 				log.Printf("Error when reading message: ", err)
 			}
+			// fmt.Println("MT %d", msgType.Code)
 			fmt.Printf("%s> ", msg)
 		}
 	}()
@@ -38,6 +40,21 @@ func main() {
 	fmt.Printf("> ")
 
 	for {
+		peakByte, err := reader.Peek(1)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error when peeking byte std input: ", err)
+		}
+
+		if peakByte[0] == byte(47) {
+			err := c.WriteControl(websocket.CloseMessage,
+				websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Disconnecting"),
+				time.Now().Add(time.Second*10))
+			break
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Failed to disconnect from server: ", err)
+			}
+		}
+
 		bytes, err := reader.ReadBytes('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error when reading std input: ", err)
