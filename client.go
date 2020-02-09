@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"time"
 
+	"github.com/achmudas/websocket-chat/commands"
 	"github.com/gorilla/websocket"
 )
 
@@ -46,13 +46,21 @@ func main() {
 		}
 
 		if peakByte[0] == byte(47) {
-			err := c.WriteControl(websocket.CloseMessage,
-				websocket.FormatCloseMessage(websocket.CloseNormalClosure, "Disconnecting"),
-				time.Now().Add(time.Second*10))
-			break
+			commandBytes, err := reader.ReadBytes('\n')
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "Failed to disconnect from server: ", err)
 			}
+
+			command, err := commands.Create(string(commandBytes[1:]))
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Failed to execute command: ", err)
+				fmt.Printf("> ")
+				// return
+			}
+			if command != nil {
+				command.Execute(c)
+			}
+			// break #FIXME ?
 		}
 
 		bytes, err := reader.ReadBytes('\n')
