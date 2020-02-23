@@ -12,30 +12,12 @@ import (
 )
 
 func main() {
-
-	u := url.URL{Scheme: "ws", Host: "localhost:8080"}
-
-	dialer := websocket.DefaultDialer
-	c, _, err := dialer.Dial(u.String(), nil)
-
-	if err != nil {
-		log.Fatal("Failed to connect ", err)
-	}
-
+	c := connect()
 	defer c.Close()
 
 	reader := bufio.NewReader(os.Stdin)
 
-	go func() {
-		for {
-			_, msg, err := c.ReadMessage()
-			if err != nil {
-				log.Printf("Error when reading message: ", err)
-			}
-			// fmt.Println("MT %d", msgType.Code)
-			fmt.Printf("%s> ", msg)
-		}
-	}()
+	go waitAndReadMessages(c)
 
 	fmt.Printf("> ")
 
@@ -45,6 +27,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error when peeking byte std input: ", err)
 		}
 
+		// #FIXME move to separate function?
 		if peakByte[0] == byte(47) {
 			commandBytes, err := reader.ReadBytes('\n')
 			if err != nil {
@@ -53,14 +36,20 @@ func main() {
 
 			command, err := commands.Create(string(commandBytes[1:]))
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "Failed to execute command: ", err)
-				fmt.Printf("> ")
-				// return
+				fmt.Fprintln(os.Stderr, "Failed to find command: ", err)
 			}
 			if command != nil {
-				command.Execute(c)
+				quit, err := command.Execute(c)
+				if err != nil {
+					fmt.Fprintln(os.Stderr, "Failed to execute command: ", err)
+				}
+
+				if quit {
+					break
+				}
+
 			}
-			// break #FIXME ?
+			fmt.Printf("> ")
 		}
 
 		bytes, err := reader.ReadBytes('\n')
@@ -68,5 +57,27 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error when reading std input: ", err)
 		}
 		c.WriteMessage(websocket.TextMessage, bytes)
+	}
+}
+
+func connect() (conn *websocket.Conn) {
+	u := url.URL{Scheme: "ws", Host: "localhost:8080"}
+
+	dialer := websocket.DefaultDialer
+	c, _, err := dialer.Dial(u.String(), nil)
+
+	if err != nil {
+		log.Fatal("Failed to connect ", err)
+	}
+	return c
+}
+
+func waitAndReadMessages(c *websocket.Conn) {
+	for {
+		_, msg, err := c.ReadMessage()
+		if err != nil {
+			log.Printf("Error when reading message: ", err)
+		}
+		fmt.Printf("%s> ", msg)
 	}
 }
