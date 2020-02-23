@@ -57,7 +57,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		fmt.Println("MT: %d", mt)
+		fmt.Printf("MT: %d\n", mt)
 
 		// sendingClient := getSendingClient(con)
 

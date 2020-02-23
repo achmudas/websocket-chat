@@ -13,43 +13,20 @@ import (
 
 func main() {
 	c := connect()
-	defer c.Close()
 
 	reader := bufio.NewReader(os.Stdin)
-
 	go waitAndReadMessages(c)
-
 	fmt.Printf("> ")
 
 	for {
-		peakByte, err := reader.Peek(1)
+		peekByte, err := reader.Peek(1)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error when peeking byte std input: ", err)
 		}
 
-		// #FIXME move to separate function?
-		if peakByte[0] == byte(47) {
-			commandBytes, err := reader.ReadBytes('\n')
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Failed to disconnect from server: ", err)
-			}
-
-			command, err := commands.Create(string(commandBytes[1:]))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Failed to find command: ", err)
-			}
-			if command != nil {
-				quit, err := command.Execute(c)
-				if err != nil {
-					fmt.Fprintln(os.Stderr, "Failed to execute command: ", err)
-				}
-
-				if quit {
-					break
-				}
-
-			}
-			fmt.Printf("> ")
+		if quit := executeFunctionalCommand(peekByte, reader, c); quit {
+			c.Close()
+			break
 		}
 
 		bytes, err := reader.ReadBytes('\n')
@@ -80,4 +57,27 @@ func waitAndReadMessages(c *websocket.Conn) {
 		}
 		fmt.Printf("%s> ", msg)
 	}
+}
+
+func executeFunctionalCommand(peekByte []byte, reader *bufio.Reader, c *websocket.Conn) bool {
+	if peekByte[0] == byte(47) {
+		commandBytes, err := reader.ReadBytes('\n')
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Failed to disconnect from server: ", err)
+		}
+
+		command, err := commands.Create(string(commandBytes[1:]))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Failed to find command: ", err)
+		}
+		if command != nil {
+			quit, err := command.Execute(c)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Failed to execute command: ", err)
+			}
+			return quit
+		}
+		fmt.Printf("> ")
+	}
+	return false
 }
