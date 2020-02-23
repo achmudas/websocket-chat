@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,40 +10,34 @@ import (
 	"github.com/marstr/randname"
 )
 
-type Client struct {
+type client struct {
 	id         string
 	connection *websocket.Conn
 }
 
-var clients = []Client{}
+var clients = []client{}
 
-func initConnection() *websocket.Upgrader {
+func initConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, []client) {
 	upgrader := websocket.Upgrader{}
-	return &upgrader
-}
-
-func receive(w http.ResponseWriter, r *http.Request) {
-	up := initConnection()
-	con, err := up.Upgrade(w, r, nil) //#FIXME Upgrade is deprecated
+	con, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal("Error when innitiating connection: ", err)
 	}
 
+	clientName := randname.Generate()
+	fmt.Printf("Connected %s\n", clientName)
+	clients = append(clients, client{clientName, con})
+	return con, clients
+}
+
+func receive(w http.ResponseWriter, r *http.Request) {
+	con, clients := initConnection(w, r)
 	defer con.Close()
 
-	clientName := randname.Generate()
-
-	fmt.Printf("Connected %s\n", clientName)
-
-	clients = append(clients, Client{clientName, con})
-
 	for {
-
-		var client Client
-		for _, cli := range clients {
-			if cli.connection == con {
-				client = cli
-			}
+		client, err := findClient(con)
+		if err != nil {
+			log.Printf("Error when connecting client: ", err)
 		}
 
 		mt, msg, err := con.ReadMessage()
@@ -57,17 +52,11 @@ func receive(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		fmt.Printf("MT: %d\n", mt)
-
-		// sendingClient := getSendingClient(con)
-
 		fmt.Printf("Received from %s: %s\n", client.id, msg)
 
 		// #FIXME use go routines?
 		for _, cli := range clients {
-
 			msgToSent := []byte{}
-
 			if cli.connection == con {
 				msgToSent = append([]byte(client.id+": "), msg...)
 			} else {
@@ -81,15 +70,14 @@ func receive(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func getSendingClient(con *websocket.Conn) Client {
-// 	var client Client
-// 	for _, cli := range clients {
-// 		if cli.connection == con {
-// 			client = cli
-// 		}
-// 	}
-// 	return client
-// }
+func findClient(con *websocket.Conn) (*client, error) {
+	for _, cli := range clients {
+		if cli.connection == con {
+			return &cli, nil
+		}
+	}
+	return nil, errors.New("Client couldn't be found")
+}
 
 func main() {
 	address := "localhost:8080"
