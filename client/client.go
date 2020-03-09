@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/achmudas/websocket-chat/commands"
+	"github.com/achmudas/websocket-chat/client/commands"
 	"github.com/gorilla/websocket"
 )
 
@@ -53,7 +53,7 @@ func waitAndReadMessages(c *websocket.Conn) {
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
-			log.Printf("Error when reading message: ", err)
+			log.Printf("Error when reading message: %v ", err)
 		}
 		fmt.Printf("%s> ", msg)
 	}
