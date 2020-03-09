@@ -37,7 +37,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 	for {
 		client, err := findClient(con)
 		if err != nil {
-			log.Printf("Error when connecting client: ", err)
+			log.Printf("Error when connecting client: %v", err)
 		}
 
 		mt, msg, err := con.ReadMessage()
@@ -48,7 +48,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			} else {
-				log.Printf("Error when reading message: ", err)
+				log.Printf("Error when reading message: %v", err)
 			}
 		}
 
@@ -64,7 +64,7 @@ func receive(w http.ResponseWriter, r *http.Request) {
 			}
 			err = cli.connection.WriteMessage(mt, msgToSent)
 			if err != nil {
-				log.Printf("Error when sending message: ", err)
+				log.Printf("Error when sending message: %v", err)
 			}
 		}
 	}
