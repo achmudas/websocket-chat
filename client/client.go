@@ -60,12 +60,13 @@ func waitAndReadMessages(c *websocket.Conn) {
 }
 
 func executeFunctionalCommand(peekByte []byte, reader *bufio.Reader, c *websocket.Conn) bool {
+	fmt.Println(peekByte[0])
 	if peekByte[0] == byte(47) {
 		commandBytes, err := reader.ReadBytes('\n')
+		fmt.Println(commandBytes)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to disconnect from server: ", err)
 		}
-
 		command, err := commands.Create(string(commandBytes[1:]))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to find command: ", err)
