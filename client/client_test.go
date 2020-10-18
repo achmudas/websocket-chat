@@ -24,9 +24,11 @@ func TestIsNotFunctionalCommandAndNotDisconnect(t *testing.T) {
 func TestIsDisconnectCommand(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("/quit\n"))
 	quit := executeFunctionalCommand([]byte{byte(47)}, reader, &websocket.Conn{})
-	assert.False(t, quit, "It's not a functional command and client shouldn't disconnect")
+	assert.True(t, quit, "It's a functional 'quit' command and client should disconnect")
 }
 
 func TestCommandIsNotFound(t *testing.T) {
-
+	reader := bufio.NewReader(strings.NewReader("/amazing\n"))
+	quit := executeFunctionalCommand([]byte{byte(47)}, reader, &websocket.Conn{})
+	assert.False(t, quit, "It's a functional non existing command")
 }
