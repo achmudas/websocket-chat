@@ -17,9 +17,20 @@ type client struct {
 
 var clients = []client{}
 
-func initConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, []client) {
+type conUpgrader interface {
+	upgrade(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error)
+}
+
+type connectionUpgrader struct{}
+
+func (conUp connectionUpgrader) upgrade(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
 	upgrader := websocket.Upgrader{}
 	con, err := upgrader.Upgrade(w, r, nil)
+	return con, err
+}
+
+func initConnection(w http.ResponseWriter, r *http.Request, cu conUpgrader) (*websocket.Conn, []client) {
+	con, err := cu.upgrade(w, r)
 	if err != nil {
 		log.Fatal("Error when innitiating connection: ", err)
 	}
@@ -31,7 +42,8 @@ func initConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, []
 }
 
 func receive(w http.ResponseWriter, r *http.Request) {
-	con, clients := initConnection(w, r)
+	conUpgrader := connectionUpgrader{}
+	con, clients := initConnection(w, r, conUpgrader)
 	defer con.Close()
 
 	for {

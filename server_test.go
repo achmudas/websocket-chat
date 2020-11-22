@@ -29,6 +29,14 @@ func (mrw MockResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return nil, nil, nil
 }
 
+type connectionUpgraderMock struct{}
+
+func (conUp connectionUpgraderMock) upgrade(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
+	return upgradeMock()
+}
+
+var upgradeMock func() (*websocket.Conn, error)
+
 func TestFindClients(t *testing.T) {
 	con := websocket.Conn{}
 	cli := client{"TestName", &con}
@@ -47,17 +55,14 @@ func TestFindClientsIfNoClient(t *testing.T) {
 	assert.Error(t, err, "Client shoudn't be find and error should be thrown")
 }
 
-// func TestClientIsAddedAfterInitiation(t *testing.T) {
-// 	header := http.Header{}
-// 	header.Add("Connection", "upgrade")
-// 	header.Add("Upgrade", "websocket")
-// 	header.Add("Sec-Websocket-Version", "13")
-// 	header.Add("Sec-WebSocket-Key", "test")
-// 	_, clients := initConnection(MockResponseWriter{}, &http.Request{Header: header, Method: "GET"})
-// 	if len(clients) == 0 {
-// 		t.Errorf("Client wasnt't added to the slice, clients slice: %v.", clients)
-// 	}
-// }
+func TestClientIsAddedAfterInitiation(t *testing.T) {
+	upMock := connectionUpgraderMock{}
+	upgradeMock = func() (*websocket.Conn, error) {
+		return nil, nil
+	}
+	_, clients := initConnection(MockResponseWriter{}, &http.Request{Header: nil, Method: "GET"}, upMock)
+	assert.NotEmpty(t, clients, "Client wasnt't added to the slice")
+}
 
 // func TestClientIsNotAddedAfterInitiation(t *testing.T) {
 
