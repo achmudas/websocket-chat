@@ -6,3 +6,17 @@
 # Socket based webchat
 
 Simple project to get familiar with Go and websockets.
+
+
+# Run locally
+
+```
+go mod init
+go mod tidy
+
+# Run server
+go run server.go
+
+# Run client
+go run client/client.go
+```
