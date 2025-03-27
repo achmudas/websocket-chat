@@ -33,6 +33,18 @@ func TestCommandIsNotFound(t *testing.T) {
 	assert.False(t, quit, "It's a functional non existing command")
 }
 
+type MockConn struct {
+	websocket.Conn
+}
+
+func (m *MockConn) WriteMessage(messageType int, data []byte) error {
+	return nil
+}
+
+func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
+	return websocket.TextMessage, []byte("mock message"), nil
+}
+
 func TestConnect(t *testing.T) {
 	// This test assumes the server is running on localhost:8080
 	conn := connect()
