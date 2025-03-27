@@ -12,6 +12,7 @@ import (
 func TestCommandIsFound(t *testing.T) {
 	// reader := bufio.Reader{}
 	// executeFunctionalCommand([]byte{byte(47)}, &reader, &websocket.Conn{})
+}
 
 func TestIsNotFunctionalCommandAndNotDisconnect(t *testing.T) {
 	reader := bufio.Reader{}
@@ -56,5 +57,6 @@ func TestWaitAndReadMessages(t *testing.T) {
 	assert.Equal(t, "mock message", string(message), "Message content should match")
 
 	// Additional checks can be added here to verify the behavior of waitAndReadMessages
+}
 }
 }
