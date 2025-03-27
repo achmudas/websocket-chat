@@ -12,6 +12,7 @@ import (
 func TestCommandIsFound(t *testing.T) {
 	// reader := bufio.Reader{}
 	// executeFunctionalCommand([]byte{byte(47)}, &reader, &websocket.Conn{})
+}
 
 func TestIsNotFunctionalCommandAndNotDisconnect(t *testing.T) {
 	reader := bufio.Reader{}
