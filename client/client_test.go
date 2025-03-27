@@ -47,7 +47,9 @@ func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
 
 func TestWaitAndReadMessages(t *testing.T) {
 	conn := &MockConn{}
-	go waitAndReadMessages(conn)
+	go func() {
+		waitAndReadMessages((*websocket.Conn)(conn))
+	}()
 
 	// Simulate reading a message
 	messageType, message, err := conn.ReadMessage()
