@@ -59,7 +59,6 @@ func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
 func TestWaitAndReadMessages(t *testing.T) {
 	log.Println("Starting TestWaitAndReadMessages")
 	conn := &MockConn{}
-	log.Println("Finished TestWaitAndReadMessages")
 	done := make(chan bool)
 	go func() {
 		waitAndReadMessages(conn)
@@ -79,4 +78,5 @@ func TestWaitAndReadMessages(t *testing.T) {
 	}()
 
 	<-done
+	log.Println("Finished TestWaitAndReadMessages")
 }
