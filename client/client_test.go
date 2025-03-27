@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"strings"
+	"time"
 	"testing"
 
 	"github.com/gorilla/websocket"
