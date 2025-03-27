@@ -59,7 +59,11 @@ func TestWaitAndReadMessages(t *testing.T) {
 	log.Println("Starting TestWaitAndReadMessages")
 	conn := &MockConn{}
 	log.Println("Finished TestWaitAndReadMessages")
-	go waitAndReadMessages(conn)
+	done := make(chan bool)
+	go func() {
+		waitAndReadMessages(conn)
+		done <- true
+	}()
 
 	// Simulate reading a message
 	messageType, message, err := conn.ReadMessage()
@@ -67,5 +71,6 @@ func TestWaitAndReadMessages(t *testing.T) {
 	assert.Equal(t, websocket.TextMessage, messageType, "Message type should be TextMessage")
 	assert.Equal(t, "mock message", string(message), "Message content should match")
 
-	// Additional checks can be added here to verify the behavior of waitAndReadMessages
+	// Stop the loop after one iteration
+	<-done
 }
