@@ -49,7 +49,11 @@ func connect() (conn *websocket.Conn) {
 	return c
 }
 
-func waitAndReadMessages(c *websocket.Conn) {
+type Conn interface {
+	ReadMessage() (messageType int, p []byte, err error)
+}
+
+func waitAndReadMessages(c Conn) {
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
