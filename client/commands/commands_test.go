@@ -9,7 +9,7 @@ import (
 )
 
 type MockConn struct {
-	websocket.Conn
+	*websocket.Conn
 }
 
 func (m *MockConn) WriteControl(messageType int, data []byte, deadline time.Time) error {
@@ -29,7 +29,7 @@ func TestCreateUnknownCommand(t *testing.T) {
 }
 
 func TestDisconnectCommandExecution(t *testing.T) {
-	conn := &MockConn{}
+	conn := &MockConn{&websocket.Conn{}}
 	cmd := Disconnect{}
 	quit, err := cmd.Execute(conn)
 	assert.NoError(t, err, "Executing Disconnect command should not produce an error")
