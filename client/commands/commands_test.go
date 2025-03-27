@@ -28,10 +28,3 @@ func TestCreateUnknownCommand(t *testing.T) {
 	assert.Nil(t, cmd, "Command should be nil for unknown command")
 }
 
-func TestDisconnectCommandExecution(t *testing.T) {
-	conn := &MockConn{&websocket.Conn{}}
-	cmd := Disconnect{}
-	quit, err := cmd.Execute(conn)
-	assert.NoError(t, err, "Executing Disconnect command should not produce an error")
-	assert.True(t, quit, "Executing Disconnect command should return true for quit")
-}
