@@ -64,6 +64,16 @@ func TestClientIsAddedAfterInitiation(t *testing.T) {
 	assert.NotEmpty(t, clients, "Client wasnt't added to the slice")
 }
 
+func TestInitConnection(t *testing.T) {
+	upMock := connectionUpgraderMock{}
+	upgradeMock = func() (*websocket.Conn, error) {
+		return &websocket.Conn{}, nil
+	}
+	conn, clients := initConnection(MockResponseWriter{}, &http.Request{Header: nil, Method: "GET"}, upMock)
+	assert.NotNil(t, conn, "Connection should not be nil")
+	assert.NotEmpty(t, clients, "Clients list should not be empty")
+}
+
 // func TestClientIsNotAddedAfterInitiation(t *testing.T) {
 
 // }
