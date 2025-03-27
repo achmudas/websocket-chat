@@ -32,3 +32,10 @@ func TestCommandIsNotFound(t *testing.T) {
 	quit := executeFunctionalCommand([]byte{byte(47)}, reader, &websocket.Conn{})
 	assert.False(t, quit, "It's a functional non existing command")
 }
+
+func TestConnect(t *testing.T) {
+	// This test assumes the server is running on localhost:8080
+	conn := connect()
+	assert.NotNil(t, conn, "Connection should not be nil")
+	conn.Close()
+}
