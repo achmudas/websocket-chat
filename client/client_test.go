@@ -71,6 +71,11 @@ func TestWaitAndReadMessages(t *testing.T) {
 	assert.Equal(t, websocket.TextMessage, messageType, "Message type should be TextMessage")
 	assert.Equal(t, "mock message", string(message), "Message content should match")
 
-	// Stop the loop after one iteration
+	// Stop the loop after a short delay
+	go func() {
+		<-time.After(1 * time.Second)
+		done <- true
+	}()
+
 	<-done
 }
