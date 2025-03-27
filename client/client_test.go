@@ -48,11 +48,6 @@ func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
 
 func TestWaitAndReadMessages(t *testing.T) {
 	conn := &MockConn{}
-	// Simulate reading a message
-	messageType, message, err := conn.ReadMessage()
-	assert.NoError(t, err, "Reading message should not produce an error")
-	assert.Equal(t, websocket.TextMessage, messageType, "Message type should be TextMessage")
-	assert.Equal(t, "mock message", string(message), "Message content should match")
 
 	// Simulate reading a message
 	messageType, message, err := conn.ReadMessage()
