@@ -9,7 +9,7 @@ import (
 )
 
 type MockConn struct {
-	*websocket.Conn
+	websocket.Conn
 }
 
 func (m *MockConn) WriteControl(messageType int, data []byte, deadline time.Time) error {
