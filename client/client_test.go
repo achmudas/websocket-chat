@@ -58,5 +58,3 @@ func TestWaitAndReadMessages(t *testing.T) {
 
 	// Additional checks can be added here to verify the behavior of waitAndReadMessages
 }
-}
-}
