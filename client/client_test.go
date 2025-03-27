@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"log"
 	"strings"
 	"testing"
 
@@ -10,25 +11,33 @@ import (
 )
 
 func TestCommandIsFound(t *testing.T) {
+	log.Println("Starting TestCommandIsFound")
 	// reader := bufio.Reader{}
+	log.Println("Finished TestCommandIsFound")
 	// executeFunctionalCommand([]byte{byte(47)}, &reader, &websocket.Conn{})
 }
 
 func TestIsNotFunctionalCommandAndNotDisconnect(t *testing.T) {
+	log.Println("Starting TestIsNotFunctionalCommandAndNotDisconnect")
 	reader := bufio.Reader{}
+	log.Println("Finished TestIsNotFunctionalCommandAndNotDisconnect")
 
 	quit := executeFunctionalCommand([]byte{byte(48)}, &reader, &websocket.Conn{})
 	assert.False(t, quit, "It's not a functional command and client shouldn't disconnect")
 }
 
 func TestIsDisconnectCommand(t *testing.T) {
+	log.Println("Starting TestIsDisconnectCommand")
 	reader := bufio.NewReader(strings.NewReader("/quit\n"))
+	log.Println("Finished TestIsDisconnectCommand")
 	quit := executeFunctionalCommand([]byte{byte(47)}, reader, &websocket.Conn{})
 	assert.True(t, quit, "It's a functional 'quit' command and client should disconnect")
 }
 
 func TestCommandIsNotFound(t *testing.T) {
+	log.Println("Starting TestCommandIsNotFound")
 	reader := bufio.NewReader(strings.NewReader("/amazing\n"))
+	log.Println("Finished TestCommandIsNotFound")
 	quit := executeFunctionalCommand([]byte{byte(47)}, reader, &websocket.Conn{})
 	assert.False(t, quit, "It's a functional non existing command")
 }
@@ -47,7 +56,9 @@ func (m *MockConn) ReadMessage() (messageType int, p []byte, err error) {
 }
 
 func TestWaitAndReadMessages(t *testing.T) {
+	log.Println("Starting TestWaitAndReadMessages")
 	conn := &MockConn{}
+	log.Println("Finished TestWaitAndReadMessages")
 	go waitAndReadMessages(conn)
 
 	// Simulate reading a message
